@@ -1,0 +1,361 @@
+LIST OF EXERCISE
+1.	To create a sample database and tables for Employees and Departments and display all departments, even if they have no employees.
+2.	To find the employees who have the same salary using SQL grouping operations.
+3.	To create and manipulate database views for simplifying complex SQL queries and improving data security.
+4.	To demonstrate the use of IF control constructs in SQL.
+5.	To demonstrate the use of CASE statements for conditional decision-making in SQL.
+6.	To demonstrate WHILE loop operations using a stored procedure in SQL.
+7	To write a SQL program using a cursor to display employee names and salaries, and to find the second highest salary.
+8	To find the top three highest salaries from the Employees table using SQL queries.
+9	To create and execute a stored procedure for inserting, updating, and retrieving data in SQL.
+10	To create a database and perform data definition operations such as creating tables and defining primary and foreign keys.
+11	To execute advanced SQL queries using LIKE, ORDER BY, and filtering operations.
+12	To create a Customers database and find customers who have made more than five purchases.
+13	To create and query nodes and relationships between Employees and Departments using basic Cypher commands in Neo4j.
+14	To implement a graph database model for the Person–Residence pattern using Cypher queries.
+15	To retrieve persons living in a particular city or district using Cypher pattern-matching queries.
+16	To group employees by their departments using Cypher aggregation functions.
+17	To create nodes with multiple skills and implement relationships such as HAS_SKILL using Cypher.
+18	To represent a person changing residence by creating LIVES_IN and MOVED_TO relationships in Neo4j.
+19	To model and retrieve department heads using Cypher relationship queries.
+20	To filter and retrieve persons living in rented or owned residences using Cypher queries
+
+
+Internal Examiner
+	External Examiner
+
+⭐ SQL PROGRAM KEYS
+________________________________________
+1. Create Employees & Departments + Show All Departments
+CREATE DATABASE CompanyDB;
+USE CompanyDB;
+
+CREATE TABLE Departments(
+    dept_id INT PRIMARY KEY,
+    dept_name VARCHAR(50)
+);
+
+CREATE TABLE Employees(
+    emp_id INT PRIMARY KEY,
+    emp_name VARCHAR(50),
+    salary INT,
+    dept_id INT,
+    FOREIGN KEY (dept_id) REFERENCES Departments(dept_id)
+);
+
+-- Show all departments even if no employees
+SELECT d.dept_name, e.emp_name
+FROM Departments d
+LEFT JOIN Employees e ON d.dept_id = e.dept_id;
+________________________________________
+2. Find Employees with Same Salary
+SELECT salary, GROUP_CONCAT(emp_name) AS employees
+FROM Employees
+GROUP BY salary
+HAVING COUNT(*) > 1;
+________________________________________
+3. Create and Manipulate Views
+CREATE VIEW emp_view AS
+SELECT emp_name, salary FROM Employees;
+
+SELECT * FROM emp_view;
+
+DROP VIEW emp_view;
+________________________________________
+4. IF Control Construct
+SET @salary = 35000;
+
+IF @salary > 30000 THEN
+    SELECT 'High Salary';
+ELSE
+    SELECT 'Low Salary';
+END IF;
+________________________________________
+5. CASE Statement
+SELECT emp_name, salary,
+CASE
+    WHEN salary > 50000 THEN 'High'
+    WHEN salary BETWEEN 30000 AND 50000 THEN 'Medium'
+    ELSE 'Low'
+END AS Salary_Level
+FROM Employees;
+________________________________________
+6. WHILE Loop in Stored Procedure
+DELIMITER $$
+CREATE PROCEDURE InsertLoop()
+BEGIN
+  DECLARE x INT DEFAULT 1;
+  WHILE x <= 5 DO
+     INSERT INTO Departments VALUES (x, CONCAT('Dept ', x));
+     SET x = x + 1;
+  END WHILE;
+END $$
+DELIMITER ;
+
+CALL InsertLoop();
+________________________________________
+7. Cursor + 2nd Highest Salary
+DECLARE done INT DEFAULT 0;
+DECLARE empName VARCHAR(50);
+DECLARE empSal INT;
+
+DECLARE emp_cursor CURSOR FOR
+SELECT emp_name, salary FROM Employees;
+
+OPEN emp_cursor;
+
+FETCH emp_cursor INTO empName, empSal;
+WHILE NOT done DO
+    SELECT empName, empSal;
+    FETCH emp_cursor INTO empName, empSal;
+END WHILE;
+
+-- Second highest salary
+SELECT DISTINCT salary
+FROM Employees
+ORDER BY salary DESC
+LIMIT 1 OFFSET 1;
+________________________________________
+8. Top 3 Highest Salaries
+SELECT emp_name, salary
+FROM Employees
+ORDER BY salary DESC
+LIMIT 3;
+________________________________________
+9. Stored Procedure for Insert & Retrieve
+DELIMITER $$
+CREATE PROCEDURE insert_emp(IN name VARCHAR(50), IN sal INT, IN dpt INT)
+BEGIN
+    INSERT INTO Employees(emp_name, salary, dept_id)
+    VALUES(name, sal, dpt);
+END $$
+DELIMITER ;
+
+CALL insert_emp('Ravi', 45000, 1);
+
+SELECT * FROM Employees;
+________________________________________
+ 
+10. Create Tables with PK & FK
+CREATE TABLE Departments(
+  dept_id INT PRIMARY KEY,
+  dept_name VARCHAR(50)
+);
+
+CREATE TABLE Employees(
+  emp_id INT PRIMARY KEY,
+  emp_name VARCHAR(50),
+  dept_id INT,
+  FOREIGN KEY (dept_id) REFERENCES Departments(dept_id)
+);
+________________________________________
+11. LIKE, ORDER BY, Filtering
+SELECT * FROM Employees
+WHERE emp_name LIKE 'A%'
+ORDER BY salary DESC;
+________________________________________
+12. Customers Who Made > 5 Purchases
+SELECT customer_id, COUNT(*) AS purchases
+FROM Orders
+GROUP BY customer_id
+HAVING COUNT(*) > 5;
+________________________________________
+13. Show All Depts (LEFT JOIN)
+SELECT d.dept_name, e.emp_name
+FROM Departments d
+LEFT JOIN Employees e
+ON d.dept_id = e.dept_id;
+________________________________________
+14. Stored Procedure to Update Salary
+DELIMITER $$
+CREATE PROCEDURE update_salary(IN id INT, IN inc INT)
+BEGIN
+    UPDATE Employees
+    SET salary = salary + inc
+    WHERE emp_id = id;
+END$$
+DELIMITER ;
+
+CALL update_salary(1, 5000);
+________________________________________
+15. Cursor for Total Salary
+SELECT SUM(salary) AS TotalSalary FROM Employees;
+________________________________________
+16. IF–ELSE Salary Grade
+SELECT emp_name,
+IF(salary > 50000, 'Grade A', 'Grade B') AS Grade
+FROM Employees;
+________________________________________
+ 
+17. CASE – Experience Category
+SELECT emp_name, experience,
+CASE
+  WHEN experience >= 10 THEN 'Senior'
+  WHEN experience >= 5 THEN 'Mid'
+  ELSE 'Junior'
+END AS Category
+FROM Employees;
+________________________________________
+18. View for Active Employees
+CREATE VIEW active_emp AS
+SELECT * FROM Employees WHERE status='Active';
+
+SELECT * FROM active_emp;
+________________________________________19. WHILE Loop Insert Dummy Records
+DELIMITER $$
+CREATE PROCEDURE InsertDummy()
+BEGIN
+   DECLARE i INT DEFAULT 1;
+   WHILE i <= 10 DO
+     INSERT INTO Employees(emp_id, emp_name, salary) 
+     VALUES(i, CONCAT('Emp', i), 20000 + (i*1000));
+     SET i = i + 1;
+   END WHILE;
+END$$
+DELIMITER ;
+CALL InsertDummy();
+________________________________________
+20. Customers with > 5 Purchases
+SELECT customer_id
+FROM Orders
+GROUP BY customer_id
+HAVING COUNT(*) > 5;
+________________________________________
+NEO4J (Cypher) KEYS
+________________________________________
+A. Create Employees–Departments
+CREATE (d1:Department {id:1, name:'HR'}),
+       (d2:Department {id:2, name:'IT'}),
+       (e1:Employee {name:'Ravi', salary:40000}),
+       (e2:Employee {name:'Arun', salary:50000}),
+       (e1)-[:WORKS_IN]->(d2),
+       (e2)-[:WORKS_IN]->(d1);
+
+MATCH (e:Employee)-[:WORKS_IN]->(d:Department)
+RETURN e.name, d.name;
+________________________________________
+B. Person–Residence Pattern
+CREATE (p1:Person {name:'Mani'}),
+       (p2:Person {name:'Divya'}),
+       (r1:Residence {city:'Chennai'}),
+       (r2:Residence {city:'Madurai'}),
+       (p1)-[:LIVES_IN]->(r1),
+       (p2)-[:LIVES_IN]->(r2);
+
+MATCH (p:Person)-[:LIVES_IN]->(r:Residence)
+RETURN p.name, r.city;
+________________________________________
+
+
+C. Query persons living in same city
+MATCH (p:Person)-[:LIVES_IN]->(r:Residence)
+RETURN r.city, COLLECT(p.name) AS Persons;
+________________________________________
+D. Employees grouped by department
+MATCH (e:Employee)-[:WORKS_IN]->(d:Department)
+RETURN d.name, COLLECT(e.name) AS Employees;
+________________________________________
+E. Create Employee with Multiple Skills
+CREATE (e:Employee {name:'Hari'}),
+       (s1:Skill {name:'Java'}),
+       (s2:Skill {name:'SQL'}),
+       (e)-[:HAS_SKILL]->(s1),
+       (e)-[:HAS_SKILL]->(s2);
+
+MATCH (e:Employee)-[:HAS_SKILL]->(s:Skill)
+RETURN e.name, COLLECT(s.name);
+________________________________________
+F. Person Changing Residence
+MATCH (p:Person {name:'Mani'})
+CREATE (new:Residence {city:'Coimbatore'}),
+       (p)-[:MOVED_TO]->(new)
+RETURN p, new;
+________________________________________
+G. Find People Living in a Specific District
+MATCH (p:Person)-[:LIVES_IN]->(r:Residence {district:'Thanjavur'})
+RETURN p.name;
+________________________________________
+H. Department Heads
+MATCH (d:Department)<-[:HEAD_OF]-(e:Employee)
+RETURN d.name, e.name AS Head;
+________________________________________
+I. People Living in Rented Houses
+MATCH (p:Person)-[:LIVES_IN]->(r:Residence {type:'Rented'})
+RETURN p.name;
+________________________________________
+J. Filter Persons by City
+MATCH (p:Person)-[:LIVES_IN]->(r:Residence)
+WHERE r.city = 'Chennai'
+RETURN p.name;
+________________________________________
+ 
+1.	Write a SQL program to create a sample database and tables for Employees and Departments, and show all departments even if no employees.
+2.	Write a Cypher query to create and query nodes and relationships between Employees and Departments.
+
+1.	Write a SQL program to find employees with the same salary.
+2.	Use Cypher to model a Person–Residence pattern and retrieve people living in a specific city.
+
+1.	Write a SQL program to create and manipulate database views for simplifying complex queries and improving data security.
+2.	Write Cypher queries to create Employee nodes and connect them to Department nodes based on role.
+
+1.	Write a SQL program to demonstrate IF control constructs in SQL.
+2.	Use Cypher to create and query Person and Residence nodes with "LIVES_IN" relationships.
+
+1.	Write a SQL program to demonstrate CASE statements in SQL control constructs.
+2.	Write Cypher queries to create nodes for Employees and Departments and retrieve employees working in a given department.
+
+1.	Write a SQL program to demonstrate a WHILE loop inside a stored procedure.
+2.	Implement a Person–Residence graph model and find all persons living in multiple cities.
+
+1.	Write a SQL program using a cursor to list employee names and salaries, and find the second highest salary.
+2.	Use Cypher to create Employee nodes and assign multiple skills using relationships.
+
+1.	Write a SQL program to create a sample employee database and query the top 3 highest salaries.
+2.	Create a graph structure with Department nodes and retrieve departments with more than 3 employees.
+
+1.	Write a SQL program to create and execute a stored procedure for inserting and retrieving employee data.
+2.	Write Cypher queries to model a Person–Residence graph and get residents of a particular state.
+1.	Write a SQL program to create tables with primary and foreign keys (Employees–Departments).
+2.	Create nodes with properties and query using pattern matching (Person–Residence model).
+
+1.	Write a SQL program to demonstrate advanced SQL queries using LIKE, ORDER BY, and filtering operations.
+2.	Write Cypher queries to create Employees and Departments and show employees grouped by department.
+
+1.	Write a SQL program to create a Customers database and find customers who made more than 5 purchases.
+2.	Write Cypher to model Customer–Purchase relationships and list high–value customers.
+
+1.	Write a SQL program to create a sample database and show all departments even if no employees using LEFT JOIN.
+2.	Create Person and Residence nodes and retrieve cities with more than 2 residents.
+
+1.	Write a SQL stored procedure to update employee salary and retrieve updated results.
+2.	Write Cypher queries to create Employees and tag them with roles using relationships.
+
+1.	Write a SQL program using a cursor to display employee details and compute total salary.
+2.	Implement Person–Residence modeling and retrieve persons who changed their residence.
+
+1.	Write a SQL program demonstrating IF–ELSE with salary grade classification.
+2.	Use Cypher to create graph relationships between employees and projects.
+
+1.	Write a SQL program demonstrating CASE to categorize employees based on experience.
+2.	Create a graph model of Persons and Residences and retrieve all residences in a district.
+
+1.	Write a SQL program for creating database views to show only active employees.
+2.	Write Cypher queries to create Departments and retrieve department heads using relationships.
+1.	Write a SQL program for WHILE loop to insert dummy employee records into a table.
+2.	Write Cypher to model residences and find all people living in rented houses.
+
+1.	Write a SQL program to find customers who made more than 5 purchases using GROUP BY and HAVING.
+2.	Implement Person–Residence pattern and filter persons by city, state, or pincode.
+
+1.	Write a SQL program to find employees with the same salary.
+2.	Use Cypher to model a Person–Residence pattern and retrieve people living in a specific city.
+
+1.	Write a SQL program to create and manipulate database views for simplifying complex queries and improving data security.
+2.	Write Cypher queries to create Employee nodes and connect them to Department nodes based on role.
+
+1.	Write a SQL program to demonstrate advanced SQL queries using LIKE, ORDER BY, and filtering operations.
+2.	Write Cypher queries to create Employees and Departments and show employees grouped by department.
+
+1.	Write a SQL program to create and manipulate database views for simplifying complex queries and improving data security.
+2.	Write Cypher queries to create Employee nodes and connect them to Department nodes based on role.
+
